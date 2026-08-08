@@ -1,0 +1,43 @@
+name: Build Brunt Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Instalar Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Descomprimir proyecto Android
+        run: |
+          unzip -o BruntControlAndroid_GitHubAPK.zip -d android-project
+          echo "Contenido descomprimido:"
+          find android-project -maxdepth 3 -type f | head -50
+
+      - name: Compilar APK
+        working-directory: android-project/BruntControlAndroid
+        run: gradle assembleDebug
+
+      - name: Subir APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: BruntControl-APK
+          path: android-project/BruntControlAndroid/app/build/outputs/apk/debug/app-debug.apk
